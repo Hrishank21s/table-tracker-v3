@@ -1,10 +1,17 @@
-// Database configuration
-const config = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'user',
-  password: process.env.DB_PASSWORD || 'password',
-  database: process.env.DB_NAME || 'table_tracker',
-  port: process.env.DB_PORT || 5432,
-};
+const { Pool } = require('pg');
 
-module.exports = config;
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/table_tracker',
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('Error connecting to database:', err);
+  } else {
+    console.log('Database connected successfully');
+    release();
+  }
+});
+
+module.exports = pool;
