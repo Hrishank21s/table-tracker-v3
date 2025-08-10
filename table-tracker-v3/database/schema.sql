@@ -1,48 +1,48 @@
--- Database schema for Table Tracker application
+-- Create database (run this first)
+CREATE DATABASE table_tracker;
+
+-- Connect to table_tracker database, then run below:
 
 -- Users table
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) DEFAULT 'staff',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tables table (represents physical tables)
-CREATE TABLE tables (
+-- Tables configuration
+CREATE TABLE tables_config (
     id SERIAL PRIMARY KEY,
-    table_number INTEGER NOT NULL,
-    capacity INTEGER NOT NULL,
-    status VARCHAR(20) DEFAULT 'available' CHECK (status IN ('available', 'occupied', 'reserved', 'out_of_order')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    name VARCHAR(50) NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    price_per_minute DECIMAL(5,2) NOT NULL,
+    status VARCHAR(20) DEFAULT 'available'
 );
 
--- Sessions table (represents table usage sessions)
+-- Gaming sessions
 CREATE TABLE sessions (
     id SERIAL PRIMARY KEY,
-    table_id INTEGER REFERENCES tables(id),
-    user_id INTEGER REFERENCES users(id),
-    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    table_id INTEGER REFERENCES tables_config(id),
+    start_time TIMESTAMP NOT NULL,
     end_time TIMESTAMP,
-    duration INTEGER, -- in minutes
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    total_minutes INTEGER,
+    total_amount DECIMAL(8,2),
+    split_players INTEGER DEFAULT 1,
+    amount_per_player DECIMAL(8,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Indexes for better performance
-CREATE INDEX idx_tables_status ON tables(status);
-CREATE INDEX idx_sessions_table_id ON sessions(table_id);
-CREATE INDEX idx_sessions_user_id ON sessions(user_id);
-CREATE INDEX idx_sessions_start_time ON sessions(start_time);
+-- Insert default tables
+INSERT INTO tables_config (name, type, price_per_minute) VALUES
+('Snooker Table 1', 'snooker', 3.00),
+('Snooker Table 2', 'snooker', 4.00),
+('Snooker Table 3', 'snooker', 4.50),
+('Pool Table 1', 'pool', 2.00),
+('Pool Table 2', 'pool', 2.00),
+('Pool Table 3', 'pool', 2.50);
 
--- Sample data
-INSERT INTO tables (table_number, capacity, status) VALUES
-(1, 4, 'available'),
-(2, 2, 'available'),
-(3, 6, 'available'),
-(4, 4, 'available'),
-(5, 8, 'available');
+-- Insert default admin user (password: admin123)
+INSERT INTO users (username, password, role) VALUES
+('admin', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
